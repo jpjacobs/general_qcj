@@ -13,5 +13,5 @@ qcj.ijs
 example.ijs
 README.md
 )
-RELEASE =: 'j904'
+RELEASE =: 'j903'
 FOLDER =: 'general/qcj'

@@ -10,7 +10,7 @@ Run  fh 'term'  to see the help on 'term', and fh'' prints all available help.
 )
 FILES =: 0 : 0
 qcj.ijs
-example.ijs
+examples.ijs
 README.md
 )
 RELEASE =: '903'

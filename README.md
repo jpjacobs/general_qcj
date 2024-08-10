@@ -13,7 +13,7 @@ Main functionality implemented at the moment are:
 - Many single and multi-qubit gates;
 - `N a b... q gate` : apply gate in N qubit system to qubits a, b ...; 
 - `rg` : quickly generate a (multi-)qubit state;
-- `selm` :selective measurement in the Z-basis, returning probabilities for each bit string and the resulting states;
+- `selm` : selective measurement in the Z-basis, returning probabilities for each bit string and the resulting states;
 - `pickst`: based on the results of selective measurement, pick one of the resulting states;
 - `out` and `inn` : outer & inner product of states;
 - `rst` creates random y qubit states;
@@ -23,7 +23,7 @@ Partially implemented:
 - Projective measurement `pmeas` (but only partly, it does not return states resulting after the measurement).
 
 ## Requirements
-QCJ runs on j904 or younger on all platforms and in all interfaces (JQt, JHS, jconsole, JAndroid, and the J playground).
+QCJ runs on j904 or younger on all platforms and in all interfaces (JQt, JHS, jconsole, JAndroid, and the [J playground](https://jsoftware.github.io/j-playground/bin/html2/#base64=aW5zdGFsbCdnaXRodWI6anBqYWNvYnMvZ2VuZXJhbF9xY2onCmxvYWQnZ2VuZXJhbC9xY2onCmxvYWRkICdhZGRvbnMvZ2VuZXJhbC9xY2ovZXhhbXBsZXMuaWpzJw==)).
 The only library depended on is `graphics/plot` for showing a qubit in the Bloch sphere.
 
 Installation instructions:

@@ -66,11 +66,11 @@ q12 =: Bell mp rg '00'     NB. Entangled Bell state
 st  =: q0 tp q12           NB. full state including qubit 0
 Note 'Diagram'
 Proper teleport  Deferred measurement
-q0 ?--oHM---     q0 ---oH-o-- 
-q1 -Ho+--M--     q1 -Ho+-o--- 
-q2 --+----XZ     q2 --+--XZ--
-crz=====v==o     crz=========
-crx======vo=     crx=========
+q0 ?--oHM----     q0 ---oH-o-- 
+q1 -Ho+--M---     q1 -Ho+-o--- 
+q2 --+----XZM     q2 --+--XZM-
+crz=====v==o=     crz=========
+crx======vo==     crx=========
 )
 NB. Deferred measurement circuit version
 tele =:(3 0 2 q CZ) mp (3 1 2 q CX) mp (H tp I tp I) mp (3 0 1 q CNOT)

@@ -15,8 +15,8 @@ Verbs/functions defined:
  A   tp  A     : tensor/Kronecker product
  A   tps A     : Sparse tensor product
  A   mp  A     : matrix product; e.g. G mp S applies gate to state, G mp G combines two gates sequentially.
- SA out  SB    : |SA><SB| outer product; density of S : out~ S (with probabilities on diagonal, and couplings off-diagonal).
- SA inn  SB    : <SA|SB>  inner product.
+ SA  op  SB    : |SA><SB| outer product; density of S : op~ S (with probabilities on diagonal, and couplings off-diagonal).
+ SA  ip  SB    : <SA|SB>  inner product.
     dag  A     : dagger: transpose conjugate
     diag #     : diagonal of matrix (if #is rank 2 or higher); matrix with diagonal # if # is rank 1. 
    trace #     : matrix trace = sum of diag
@@ -108,11 +108,11 @@ NB. block diagonal (dyad)
 bd =: [ , ] ,"1~ 0 {.@# [
 NB. diagonal matrix/diagonal of matrix
 diag =: [`(* =@i.@#)`(|:~ <@i.@#@$)@.(2<.#@$)
-NB. matrix/dot product (dyad; use inn when dealing with bra's for conjugate)
+NB. matrix/dot product (dyad; use ip when dealing with bra's for conjugate)
 mp =: +/ .*
 NB. inner and outer product of states
-inn =: (mp +)~  NB. <x|y>
-out =: (*+)"0/  NB. |x><y|
+ip =: (mp +)~  NB. <x|y>
+op =: (*+)"0/  NB. |x><y|
 NB. matrix power by repeated squaring (dyad e.g. 4 pow mat)
 pow=: (4 : 'mp/ mp~^:(I.|.#:y) x')
 
@@ -126,7 +126,7 @@ NB. scrub near 0's from any value (including complex) e.g. (;scr) 1 o. 2p1
 scr =: (**@:|)&.+.
 NB. dagger = transposed complex conjugate
 dag =: +@|:
-NB. matrix trace. e.g. trace out~ rg '0i1!'
+NB. matrix trace. e.g. trace op~ rg '0i1!'
 trace =: (<0 1) +/@:|: ]
 
 NB. Normalise state = divide by sqrt of inner prod.:
@@ -205,7 +205,7 @@ NB. =============================
 
 NB. Measurement (x: projector for basis operator (outerproduct of an eigenvector of the operator with itself); y: qubit)
 meas  =: +@] mp [ mp ] NB. + instead of dag, because (dag v)-:+v for any vector v.
-pmeas =: (out~@[ meas ])"1 _  f. NB. measurement projecting state y on vector(s) x (left, rank 1). e.g. Sm pmeas 1r4p1 RZ mp Sm
+pmeas =: (op~@[ meas ])"1 _  f. NB. measurement projecting state y on vector(s) x (left, rank 1). e.g. Sm pmeas 1r4p1 RZ mp Sm
 NB. standard measurement bases for single qubit; for multiple (e.g. 4) do: (1 tp^:4~ rg"0 '01') pmeas state. 
 zmeas =: S0 &pmeas NB. |0>
 xmeas =: Sp &pmeas NB. |+>
@@ -223,7 +223,7 @@ pickst =: (+/\ I. ?@0)@(0&{::) { L:0 }.
 
 assert I -: ([: >@{. 2 selm ])"1] 2 (1&{::)@selm rst 3 NB. measuring the same bit twice should, the second time have 100% probability
 NB. sanity check:
-assert (X -: (out~ Sp) - (out~ Sm)),(Y -: (out~ Spi) - (out~ Smi)),(Z -: (out~ S0) - (out~ S1))
+assert (X -: (op~ Sp) - (op~ Sm)),(Y -: (op~ Spi) - (op~ Smi)),(Z -: (op~ S0) - (op~ S1))
 
 
 NB. Visualisations

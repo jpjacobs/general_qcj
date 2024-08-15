@@ -115,6 +115,8 @@ ip =: (mp +)~  NB. <x|y>
 op =: (*+)"0/  NB. |x><y|
 NB. matrix power by repeated squaring (dyad e.g. 4 pow mat)
 pow=: (4 : 'mp/ mp~^:(I.|.#:y) x')
+NB. commutator [F,G] = FG - GF
+com=: mp - mp~
 
 NB. Tensor product (=kronecker product=circled x), from https://code.jsoftware.com/wiki/Essays/Kronecker_Product
 cs =: ([: */ ,:!.1)&:$
@@ -149,7 +151,7 @@ S1 =: 0 1                NB. -Z
 'Sp  Sm' =: (%:2) %~ S0 (+,:-)    S1 NB. +-X; or H mp S1 or Hm S0
 'Spi Smi'=: (%:2) %~ S0 (+,:-) j. S1 NB. +-Y; or R/L
 NB. rst : generate random state of y qubits
-rst =: [: tp/@:norm@:j./ 0 ?@$~ 2,~2,]
+rst =: [: tp/@:norm@:j./ _1+2*0 ?@$~ 2,~2,]
 
 NB. quantum register (watch out with size being 2^#y)
 rg =: ([: tp/ (S0,S1,Sp,Sm,Spi,:Smi) {~ '01+-i!' i. ,)"1
@@ -257,6 +259,10 @@ bloch =: {{
   end.
   pd 'show'
 }}
+NB. Misc
+NB. =====
+h =: 6.62607015e_34 NB. Planck constant; in J.s or kg m^2 s^_1
+hb=: h%2p1          NB. h bar; reduced Planck constant.
 
 cocurrent'base' NB. switch back to the base locale
 coinsert'qcj'    NB. make qc definitions available when undefined in the base locale

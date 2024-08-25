@@ -27,6 +27,9 @@ Verbs/functions defined:
  # pmeas S     : Projective measurement onto specific state (use # meas S with # = projection operator)
  K..M selm S   : selective measurement in Z-basis of qubits K..M, returns 0) P(bitstring) 1) states after measuring 2) bitstring
   pickst P;S;B : Pick one state;bitstring from results of selm according to the contained probabilities
+  plaus  P;S;B : Keep only plausible states from selm results
+K u shots S    : Run simulation verb u (ending in selm) |K times, returning states. If K>0 u is run K times, otherwise, the state is computed only once.
+  hist #M      : Plots histogram of any numeric data (e.g. measurement results: hist 1000 selm@:(H&mp) shots S0)
   blocha S     : Bloch sphere angles for state(s) S
   blochv S     : vector in Bloch space for state(s) S
   bloch  S     : plot Bloch sphere for states(s) S
@@ -222,11 +225,26 @@ NB.      Monad: all qbits   : partial indices  sum  probs  ; where interleave no
 selm =: (([: i. 2^.#) $: ]) :(({"1 #:@i.@#) ( (+//. *:@:|) ; (=@[ ]`(I.@[)`[}"1 norm/.)  ; ~.@[ ) ] )
 NB. pickst: picks random state from result of selm according to resulting probabilities; strips probability, since nonsensical
 pickst =: (+/\ I. ?@0)@(0&{::) { L:0 }.
+NB. plaus: keep only plausible (i.e. non 0-probability) states from selm results:
+plaus =: (0<[: scr 0{::]) #L:0 ]
 
 assert I -: ([: >@{. 2 selm ])"1] 2 (1&{::)@selm rst 3 NB. measuring the same bit twice should, the second time have 100% probability
-NB. sanity check:
-assert (X -: (op~ Sp) - (op~ Sm)),(Y -: (op~ Spi) - (op~ Smi)),(Z -: (op~ S0) - (op~ S1))
 
+NB. Shots simulation adverb: repeat experiment in u x times. u is expected to be a monad, taking a state and to end in selm measurement; y is starting state. Not using pickst, as only bitstring required. shots returns a list of measurement results measured, i.e. bit strings.
+NB. if x > 0 then perform u only once, simulate experiments by comparing many random numbers to probabilities. Easily 100x faster than x<0.
+NB. if x < 0 then run u for each shot independently. Use where e.g. intermediate measurements.
+shots =: {{
+if. x>0 do.  NB. run once, then simulate picking results based on probabilities
+  st =. u. y
+  x (((+/\@] I. [ ?@$ 0:) 0&{::) { _1&{::@]) st
+else.        NB. run u. x times.
+  ((+/\ I. ?@0)@:(0&{::) { _1&{::@])@:u."1 (|x) #,:y
+end.
+}}
+NB. e.g. (,#)/..~ 1000 (0&selm)@:(H&mp) shots S0
+
+NB. hist: state histogram. Takes list of measurement results (actually any numeric result) and plots a histogram. (Minor adaptations would allow non-numeric usage, but (,#) only works for numbers...)
+hist =: (('bar;xlabel ',[: ,' ',.~dquote@:":@:}:"1) plot {:"1)@/:~@:((,#)/..~)
 
 NB. Visualisations
 NB. ===============

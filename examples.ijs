@@ -14,6 +14,8 @@ NB. original and S0 rotated over pi/4 around Y and Z
 bloch mystates=:(,:1r4p1 RZ mp 1r4p1 RY mp  ]) S0
 NB. Z-measurements on mystates.
 selm"1 mystates
+NB. show histogram for 1000 simulated measurements last of mystates
+hist 1000 selm shots {: mystates
 NB. quantum register corresponding to |0> (x) |0> (x) |i>
 rg'00i'
 NB. Bell circuit
@@ -24,7 +26,8 @@ NB. probabilities for states 00 ... 11 for each of the Bell states before
 res=: (tp~ rg"0 '01') pmeas"1/ Bell&mp"1] _2 rg\'00011011'
 NB. Nice display
 3 2$'meas\in';(4":|:#:i.4);(#:i.4);(4j1 ": res);'sum';4 ": +/ res
-
+NB. Show histogram of possible measured states, showing entangled qubits are always measured the same.
+hist 1000 selm@(Bell&mp) shots rg '00'
 
 NB. Some quantum algorithms
 NB. =======================
@@ -50,13 +53,18 @@ NB. quirk DJ CT: https://algassert.com/quirk#circuit={%22cols%22:[[1,%22H%22,%22
 NB. Superdense coding
 NB. -----------------
 NB. Physically send 1 qubit to communicated 2 classical bits
-est =: Bell mp rg '00'                        NB. Entangled Bell state
-sde =: {{                                     NB. Superdense encoding message x (0 0-1 1) on qubit 0
-  y mp~ I tp~ (#.x){(I,X,Z,:X mp Z)           NB. pick gate, qb 0
+est =: Bell mp rg '00'                        NB. Entangled Bell state, qb 1 for the sender, qubit 0 for the receiver
+sde =: {{                                     NB. Superdense encoding message x (0 0-1 1) on qubit 1 to be sent
+  y mp~ I tp~ (#.x){(I,X,Z,:X mp Z)           NB. pick gate, apply to qb 1
 }}"1 _
 sdd  =: ([: 2 2&#:@:(i.&1)@:*: Bell&mp inv)"1 NB. Superdense decoding: undo Bell entanglement, find where probability is 1 and convert back to binary
 msgs =: (2 2#:i.4)                            NB. All 4 possible messages are sent
 assert msgs -: sdd msgs sde est NB. sent messages equals received messages
+NB. Measuring the qubit sent (qubit 0 of the state) does not give an attacker any information on the message:
+assert (4 2$0.5)-: >{."1] 1&selm"1 msgs sde est NB. All probabilities are 0.5 (also if measured in different basis)
+NB. Measuring the qubit sent destroys the posibility of reconstructing the message
+eve =: 0&{::@pickst@(1&selm)"1                NB. measures causing qubit state collapse
+assert msgs -.@-: sdd eve msgs sde est
 
 NB. Quantum teleportation
 NB. ---------------------

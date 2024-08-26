@@ -244,7 +244,7 @@ end.
 NB. e.g. (,#)/..~ 1000 (0&selm)@:(H&mp) shots S0
 
 NB. hist: state histogram. Takes list of measurement results (actually any numeric result) and plots a histogram. (Minor adaptations would allow non-numeric usage, but (,#) only works for numbers...)
-hist =: (('bar;xlabel ',[: ,' ',.~dquote@:":@:}:"1) plot {:"1)@/:~@:((,#)/..~)
+hist =: (('bar;xlabel ',[: ,' ',.~dquote@:":@:}:"1) plot {:"1)@/:~@:(({.,#)/.~)
 
 NB. Visualisations
 NB. ===============

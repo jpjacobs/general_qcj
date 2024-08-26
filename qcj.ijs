@@ -38,6 +38,7 @@ States & Gates
  S0 S1 Sp Sm Spi Smi : states (kets) |0>, |1>, |+>, |->, |i>, |-i>
  rg '01+-i!'         : quantum register = tensor product of kets above (! = -i)
  rst N               : generate random state of N qubits
+ ghz N, wst N        : N-qubit GHZ and W states
  I X Y Z H           : identity; Pauli X,Y,Z; Hadamard
  RX RY RZ            : rotation gates around X,Y,Z
  P S T               : Phase shift gates; general (adverb), pi/2 and pi/4
@@ -201,6 +202,10 @@ CSW =: (I tp I) bd SW
 
 NB. FSim or fermionic simulation gate per https://en.wikipedia.org/wiki/List_of_quantum_logic_gates; m is theta,phi
 FSIM =: {{ ({.m) ((,1) bd (((0 1,:1 0) { 1 0j_1 *2 1&o.)@[) bd (,@^@j.@])) {:m}}
+
+NB. GHZ and W states (see e.g. https://arxiv.org/pdf/1807.05572 gate-based algorithms, but for ease implemented based on states)
+ghz =: [: norm #&'0' +&rg #&'1'        NB. normalised sum of all-zero and all-one states.
+wst =: [: norm@:(+/) (2^i.) =/ [:i.2^] NB. note: in tensor product, subsequent non-zeros are at positions 1, 2, 4, 8 ...
 
 NB. quantum logics: for permuting gates (has inverse too!)
 m2tt =: #:@:(i."1&1)

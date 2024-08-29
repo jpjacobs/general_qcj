@@ -10,12 +10,12 @@ Main functionality implemented at the moment are:
 
 - A help function, call `fh ' fh '` for more info;
 - `tp` and `mp`: tensor and matrix products;
+- `op` and `ip` : outer & inner product of states;
 - Many single and multi-qubit gates;
 - `N a b... q gate` : apply gate in N qubit system to qubits a, b ...; 
 - `rg` : quickly generate a (multi-)qubit register;
 - `selm` : selective measurement in the Z-basis, returning probabilities for each bit string and the resulting states;
 - `pickst`: based on the results of selective measurement, pick one of the resulting states;
-- `out` and `inn` : outer & inner product of states;
 - `rst` creates random y qubit states;
 - Bloch sphere coordinates, angles and visualisation of single qubits (`bloch`,`blochv` and `blocha`);
 - Histograms of measurement results e.g. show 1000 shot measurement of |+> : `hist 1000 selm shots Sp`.

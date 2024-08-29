@@ -33,6 +33,7 @@ K u shots S    : Run simulation verb u (ending in selm) |K times, returning stat
   blocha S     : Bloch sphere angles for state(s) S
   blochv S     : vector in Bloch space for state(s) S
   bloch  S     : plot Bloch sphere for states(s) S
+  qft S        : Quantum Fourrier Transform verb on state(s); has inverse.
 
 States & Gates
  S0 S1 Sp Sm Spi Smi : states (kets) |0>, |1>, |+>, |->, |i>, |-i>
@@ -47,6 +48,7 @@ States & Gates
  CSW , SW            : (controlled) swap gate
  TOF                 : Toffoli gate
  K L FSIM            : Fermionic simulation gate with theta,phi=K,L
+ QFT                 : Quantum Fourrier Transform matrix for 2^.N states (use qft verb instead).
 
 Overwritten something in qc (e.g. mp)? revert using erase 'mp' (Uses J locales, namespaces)
 
@@ -202,6 +204,10 @@ CSW =: (I tp I) bd SW
 
 NB. FSim or fermionic simulation gate per https://en.wikipedia.org/wiki/List_of_quantum_logic_gates; m is theta,phi
 FSIM =: {{ ({.m) ((,1) bd (((0 1,:1 0) { 1 0j_1 *2 1&o.)@[) bd (,@^@j.@])) {:m}}
+NB. Quantum Fourrier Transform matrix (y: width of state i.e. 2^Nqubits). Uses mod to avoid accumulating FP errors.
+QFT=: %: %~ ([:r.2p1%])^]|*/~@:i.
+NB. qft verb, applies qft to state; with inverse defined
+qft=: (mp"2 1~ QFT@{:@$) :. (mp"2 1~ dag@QFT@{:@$)
 
 NB. GHZ and W states (see e.g. https://arxiv.org/pdf/1807.05572 gate-based algorithms, but for ease implemented based on states)
 ghz =: [: norm #&'0' +&rg #&'1'        NB. normalised sum of all-zero and all-one states.

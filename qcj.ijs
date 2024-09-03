@@ -205,7 +205,8 @@ CSW =: (I tp I) bd SW
 NB. FSim or fermionic simulation gate per https://en.wikipedia.org/wiki/List_of_quantum_logic_gates; m is theta,phi
 FSIM =: {{ ({.m) ((,1) bd (((0 1,:1 0) { 1 0j_1 *2 1&o.)@[) bd (,@^@j.@])) {:m}}
 NB. Quantum Fourrier Transform matrix (y: width of state i.e. 2^Nqubits). Uses mod to avoid accumulating FP errors.
-QFT=: %: %~ ([:r.2p1%])^]|*/~@:i.
+NB. QFT=: %: %~ ([:r.2p1%])^]|*/~@:i.
+QFT =: (%: %~ [:r.i.*2p1%]){~]|*/~@:i. NB. slight rewrite, 10x faster, half the space. Note: (-:~.@,i.]) (]|*/~@i.) 16, so omit ~. and dyad i. .
 NB. qft verb, applies qft to state; with inverse defined
 qft=: (mp"2 1~ QFT@{:@$) :. (mp"2 1~ dag@QFT@{:@$)
 

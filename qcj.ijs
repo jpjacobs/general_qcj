@@ -5,11 +5,12 @@ NB. Limitations:
 NB. No non-integer matrix powers or exp(matrix) yet
 
 load'plot'
+CANVAS_DEFSIZE_jzplot_=: 800 600 NB. Set better plot resolution.
 boxdraw_j_ 0 NB. set nice box formating.
 cocurrent 'qcj' NB. define all below in the qc locale (so if you accidentally over-write something e.g. X, you can restore with erase'X')
 help =: ];._2 {{)n
-Terminology: G,S,A,#,K...N, = Gate, state, any, matrix, numbers; [a,b,c] any of a,b,c can replace the []
-States are vectors (rank 1); J does not distinguish row/column vectors, see (-: |:) i. 4
+Terminology: G,S,A,M,K...N, = Gate, state, any, matrix, numbers; [a,b,c] any of a,b,c can replace the []
+States are Big-Endian vectors (rank 1); J does not distinguish row/column vectors, see (-: |:) i. 4
 Verbs/functions defined:
  [K] fh 'foo'  : find (partial) string 'foo' in this help, |K lines of context centered or following (K>0, K<0)
  A   tp  A     : tensor/Kronecker product
@@ -18,18 +19,19 @@ Verbs/functions defined:
  SA  op  SB    : |SA><SB| outer product; density of S : op~ S (with probabilities on diagonal, and couplings off-diagonal).
  SA  ip  SB    : <SA|SB>  inner product.
     dag  A     : dagger: transpose conjugate
-    diag #     : diagonal of matrix (if #is rank 2 or higher); matrix with diagonal # if # is rank 1. 
-   trace #     : matrix trace = sum of diag
+    diag M     : diagonal of matrix (if M is rank 2 or higher); matrix with diagonal M if M is rank 1. 
+   trace M     : matrix trace = sum of diag
    norm  S     : normalise state(s) (normalisation is not enforced, do so if needed).
  (N,L) q G     : apply gate G to qubits L resulting in an N qubit gate
+    rev G or S : reverse qubit order in gate or state (to be like Qiskit)
     scr  A     : scrub near-zero values from any (complex) values A
- [x,y,z]meas S : measurement probability in x,y, or z basis
- # pmeas S     : Projective measurement onto specific state (use # meas S with # = projection operator)
- K..M selm S   : selective measurement in Z-basis of qubits K..M, returns 0) P(bitstring) 1) states after measuring 2) bitstring
+ K..L selm S   : selective measurement in Z-basis of qubits K..L, returns: P(bitstring) ; states after measuring ; bitstring
   pickst P;S;B : Pick one state;bitstring from results of selm according to the contained probabilities
   plaus  P;S;B : Keep only plausible states from selm results
 K u shots S    : Run simulation verb u (ending in selm) |K times, returning states. If K>0 u is run K times, otherwise, the state is computed only once.
-  hist #M      : Plots histogram of any numeric data (e.g. measurement results: hist 1000 selm@:(H&mp) shots S0)
+  hist M       : Plots histogram of any numeric data (e.g. measurement results: hist 1000 selm@:(H&mp) shots S0)
+ [x,y,z]meas S : measurement probability in x,y, or z basis
+ M pmeas S     : Projective measurement onto specific state (use M meas S with M = projection operator)
   blocha S     : Bloch sphere angles for state(s) S
   blochv S     : vector in Bloch space for state(s) S
   bloch  S     : plot Bloch sphere for states(s) S
@@ -43,67 +45,75 @@ States & Gates
  I X Y Z H           : identity; Pauli X,Y,Z; Hadamard
  RX RY RZ            : rotation gates around X,Y,Z
  P S T               : Phase shift gates; general (adverb), pi/2 and pi/4
- G CU                : controlled version of gate G (e.g. CZ -: Z CU)
+ C G                 : Add control qubit as q0 to gate G (e.g. CZ -: C Z)
  CX , CY , CZ        : controlled X,Y,Z
  CSW , SW            : (controlled) swap gate
- TOF                 : Toffoli gate
+ TOF                 : Toffoli gate = C C X = CCNOT
  K L FSIM            : Fermionic simulation gate with theta,phi=K,L
  QFT                 : Quantum Fourrier Transform matrix for 2^.N states (use qft verb instead).
 
-Overwritten something in qc (e.g. mp)? revert using erase 'mp' (Uses J locales, namespaces)
+Overwritten something in qcj (e.g. mp)? revert using erase 'mp' (Uses J locales, namespaces)
+
+Less useful functions in qcj
+  M pow K : Matrix M to the power K
+P  qbp  G : apply permutation P to qubits in gate G (used by q)
+  m2tt  G : For permuting gates, turns gate into function truth table (has inverse)
+ MA bd MB : form block diagonal matrix with matrices MA and MB as blocks
 
 Short J overview
  J Vocabulary: https://code.jsoftware.com/wiki/NuVoc ; Reference card: https://code.jsoftware.com/wiki/File:B.A4.pdf
- Number format : _1 1r4 1r2p1 3j5 1e6 _ __: -1 (- is verb) 1/4, pi/2 (1/2*pi^1), 3 + 5*i, 1000000, inf, -inf
- Literals (strings) : 'this is a string'; use '' to include single quotes.
+ Number format : _1 1r4 1r2p1 3j5 1e6 _ __ : -1 (- is verb), 1/4, pi/2 (1/2*pi^1), 3 + 5*i, 1000000, inf, -inf
+ Literals (strings) : 'this is a string'; use '' to include single quotes in a literal.
+
 Terminology, parts of speech:
- Noun = data, any type; verb = function taking noun, and returning a noun; monad/dyad = verb with 1 or 2 arguments;
+ Noun = data, any type; verb = function taking noun, and returning a noun; monad/dyad = verb with 1 (right) or 2 (left & right) arguments;
  Adverbs and conjunctions: higher order functions on nouns/verbs and return any.
  In the following: f,g,h = verb, x, y = left/right verb args;
  m, n = left/right noun args to adv/conj and u, v is left/right verb args to adv/conj.
-parsing/execution: adv/conjunctions execute first; then verbs from right to left; use () to enforce different order
+
+Parsing/execution: adv/conjunctions execute first, left to right; then verbs from *right to left*; use () to enforce different order
 type ;: 'mp RX foo X ' shows which parts of speech mp, RX, foo and X are; use e.g. datatype Y for datatypes
 
 Rank
- Nouns all are (hyper-)rectangular arrays with shape, rank.
+ Nouns all are (hyper-)rectangular arrays with shape, rank (e.g. matrix, vector and scalar have ranks 2, 1 and 0).
  $ A, # A, #@$ A : shape, number of elements, rank of A
  [x] verb y : apply verb to x and y (at implicit verb rank, verb b. 0 returns verb's monadic, left and right ranks)
  verb"N : apply verb at rank N; e.g. see difference <"0, <"1, <"2, <"3 when applied to i.2 3 4; f"verb applies f at rank of verb.
  m"n    : constant function, returning m for each item at rank n e.g. 0"0 i. 3 4 returns a 3x4 matrix of 0's; 'foo'"_ returns 'foo'
  boxed  : Boxed nouns allow combining different sizes/types in single array.
+
 Explicit definition:
  use {{ }}, with arguments x,y (for verbs) and m,n,u,v (for adv/conj) as above (type autodetected)
  {{)x ...}} forces type depending on x being first letter of : adv conj noun verb monad dyad
- control constructs only in explicit def:
+ Control constructs are only allowed in explicit definitions:
  for. T do. B end. ; if. T do. B [elseif. T do. B] [else. B] end.; while. T do. B end. ...
+
 Verb composition (tacit): @, @:, &, &:
  [x] (f g h) y is a fork = (x f y) g (x f y)  [x] (f g) y is a hook = [x if present, else y] f g y
  x f@:g y = f x g y   x f&:g y = (g x) f (g y) ; @ and & are the same but apply f"g
  m&v and u&n bind left/right argument (noun) m/n to verb u/v.
+
 Inverses ^:_1, b. _1 , &., &.:, inv :. 
  f^:_1 is inverse of f, =  f inv; see what is f inv: use f b. _1
  Under [x] f &.: g y = g ^:_1 [g x] f g y; &. at rank of g; f :. g is f with assigned inverse g
+
 Selected verbs
- % + - *  : dyad: divide, others as usual; monad: 1/x, complex conjugate, minus, signum (all rank 0)
- =: =.    : global and local assignment
- = < > <: >: : dyad: logical operators (<: and >: are <= and >=) (all rank 0)
- i. y: 0 to y-1
- x o. y : for x=1,2,3: sin y, cos y, tan y; x=_1,_2,_3 asin, acos, atan
- [x] #. y, [x] #: y : convert y from/to base x (2 by default), e.g. 1 0 1 -: #: 5
+ % ^ ^. + - *  : dyad: divide, exp, ln, others as usual; monad: 1/x, power, log, complex conjugate, minus, signum (all rank 0)
+ =: =.         : global and local assignment (static scope, i.e. locals of a function are not visible in nested functions)
+ = < > <: >:   : dyad: logical operators (<: and >: are <= and >=) (all rank 0)
+ i. y          : 0 to y-1
+ x o. y        : for x=1,2,3 : sin y, cos y, tan y ; x=_1,_2,_3 : asin, acos, atan
+ x #. y, x #: y : convert y from/to base x (2 by default), e.g. 1 0 1 -: #: 5
  x,y x,:y x,.y : join arrays x and y: along the first axis, adding a new first dimension, and join items (zip)
- x { y : indexing: select items x (of leading axis) of y
- x # y : repeat items of y x times; if x Boolean mask = Boolean indexing
- ; < > : link (append after boxing left, and right if right not boxed), unbox, box (monads), Used a lot: u&.> :u on data in box, re-box.
- ;:    : monad boxes J words in string
+ x { y         : indexing: select items x (of leading axis) of y
+ x # y         : repeat items of y x times; if x Boolean mask = Boolean indexing
+ ; < >         : link (append after boxing left, and right if right not boxed), unbox, box (monads), Used a lot: u&.> :u on data in box, re-box.
+ ;:            : monad boxes J words in string
+
 Selected adverbs/conjunctions
  u/ y: apply verb u between items of y, e.g. mp/ X,Y,:Z or tp/ S0,S1,:Sp; sum = +/; product is */; max = >./ ...
  [x] u~ y: reflective y u y (monad) or passive y u x (dyad)
 
-Less useful functions in qc
-  # pow K : Matrix # to the power K
-P  qbp  G : apply permutation P to qubits in gate G (used by q)
-  m2tt  G : For permuting gates, turns gate into function truth table (has inverse)
- #A bd #B : form block diagonal matrix with matrices #A and #B as blocks
 }}
 NB. [x] fh y: find line in help containing literal y (e.g. fh ' mp '). x indicates how many lines of context (>0 centered, <0 starting from match) 
 fh =: (help&([#~+./@E.&tolower"1~) : (help#~[ (<.@-:@<:@[ |.^:(0<:*@[) (0#~<:@|@[), |@[ +./\ ]) +./@E.&tolower"1&help@]))
@@ -188,19 +198,19 @@ q =: {{ ((}. ([, -.~) i.@{.) x ) qbp (I tp~^:(({.x)-2^.#y) y )}}"1 2
 NB. permute qubits in gate or register (n) according to permutation in x. e.g. SW -: CNOT mp 1 0 CNOT mp CNOT; q easier to work with.
 NB.     r/g perm all axes  qb perm trans decode states
 qbp =: {{y ({|:)^:(#@$@])~ x (&{)(&.|:)(&.#:) i.#y}} 
+NB. reverse qubit order of gates or states (to e.g. what is used in qiskit)
+rev =: (2 i.@-@^ #) qbp ]
 
 NB. controlled gates
-CU   =: {{(=i.4) (<;~2 3)}~ m}} NB. generalised controlled gate
-CNOT =: CX =: X CU 
-CY   =:       Y CU
-CZ   =:       Z CU
+C    =: (=@i.@# bd ])"2   NB. add control qubit (as first qubit)
+CNOT =: {. 'CX CY CZ' =: C X,Y,:Z
 NB. swap swaps two qubits
 SW   =: X (] bd bd) ,1
 
 NB. Toffoli
-TOF  =:  (=i.8) (<;~6 7)}~ X
+TOF  =:  C C X
 NB. CSWAP; aka Fredkin conditioned on QB 0, swap QB's 1 and 2
-CSW =: (I tp I) bd SW
+CSW =: C SW
 
 NB. FSim or fermionic simulation gate per https://en.wikipedia.org/wiki/List_of_quantum_logic_gates; m is theta,phi
 FSIM =: {{ ({.m) ((,1) bd (((0 1,:1 0) { 1 0j_1 *2 1&o.)@[) bd (,@^@j.@])) {:m}}

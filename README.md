@@ -4,7 +4,7 @@
 This addon is the result of my own explorations in Quantum Computing, using J.
 Although it is getting quite extensive, it remains a work-in-progress; things may change as I explore more.
 
-One thing to note is: states are implemented as J vectors, i.e. being 1 dimensional. No distinction is made between column or row vectors (as these would have to be 1xN or Mx1 matrices). This choice seems more logical for J, and the user should be aware of this.
+One thing to note is: states are implemented as J vectors, i.e. being 1 dimensional. No distinction is made between column or row vectors (as these would have to be 1xN or Mx1 matrices). This choice seems more logical for J, and the user should be aware of this. Qubit order is Big Endian (i.e. opposed to Qiskit).
 
 Main functionality implemented at the moment are:
 

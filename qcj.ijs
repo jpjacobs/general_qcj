@@ -36,6 +36,7 @@ K u shots S    : Run simulation verb u (ending in selm) |K times, returning stat
   blochv S     : vector in Bloch space for state(s) S
   bloch  S     : plot Bloch sphere for states(s) S
   qft S        : Quantum Fourrier Transform verb on state(s); has inverse.
+x m circ y     : Quantum circuit matrix from description in Y. x optional syms;gates; m: 0 for non-fretted, 1 for fretted slices in y.
 
 States & Gates
  S0 S1 Sp Sm Spi Smi : states (kets) |0>, |1>, |+>, |->, |i>, |-i>
@@ -226,6 +227,47 @@ wst =: [: norm@:(+/) (2^i.) =/ [:i.2^] NB. note: in tensor product, subsequent n
 
 NB. quantum logics: for permuting gates (has inverse too!)
 m2tt =: #:@:(i."1&1)
+
+NB. Quantum Circuits
+NB. =================
+NB. [(syms ,&< defs)] m circ desc: return matrix of quantum circuit from description, using, if given defs as definitions for symbols in syms used in the description. If a symbol is not found, it's looked up where circ is executed. m is to be set based on whether qubit lines are fretted per slice (1), or not (0).
+NB. A description is given as a fretted circuit (with separators for slices as first character) or without. E.g.
+NB. fretted     non-fretted (with C in x arg as ('C';CX)
+NB. |H|CX       HC
+NB. |I|CX       IC
+NB. Fretted offers more flexibility, as every gate symbol can have more characters, and can also be annotated: gate_group_bit : bit and group are literals; group decides which of the same parallel multi-qubit gates on the qubits should be grouped together (e.g. CX on each of 0 1;2 3 vs. CX on 0 2;1 3), and bit decides ordering of qubit ports of the gate. Groups and bits are just decided by sorting order, with numbers before letters (and numbers converted to numbers so ordering works).
+
+NB. Warning, do not reasign things in circuit definitions, because results could be wrong (each of the ~. gates are instantiated once)
+circ =: (a: ,&< a:)&$: : {{
+  NB. Try using fretted circuit first, if fail (empty a: due to fills), assume non-fretted
+  NB. Not robust enough. For now, make circ adverb with m deciding fretted or not
+  y =. ];._2^:(LF&e. *. 1=#@$) y NB. allow literal matrix as well.
+  if. m do.
+        bx =. 1 0 2 |: (3{. [: <;._1 '_',deb);._1"1 y
+  else. bx =. 1 0 2 |: (3{.                 <)"+ "1 y end.
+  collect   =. =i. 2^ N=. #y     NB. identity matrix for multiplying slice gates
+  'ugi ugr' =. ((i.~ ,&< ]) ~.@,) ,&.> {."1 bx NB. Unique gate indexes and representations
+  gb        =. ".^:(*./@e.&Num_j_) &.> }."1 bx NB. The explicitly given groups/bits; convert char to num for sorting to behave.
+  NB. Replace - by I, if present, for representing wire.
+  ugr    =. (<,'-') (<,'I')"_`(i.~)`]}^:e. ugr
+  NB. Lookup in x : in case not boxed, box everything for uniformity
+  syms =. <@,"0^:(0=L.) 0{:: x
+  gates=. <"2^:  (0=L.) 1{:: x
+  ug   =. (gates{~syms i. ]) :: (". &.>)"0 ugr NB. Doublecheck that this goes right with locales etc.
+  ugbc =. 2^.#&>ug  NB. gate counts after instantiations
+  NB. Do some assertion all results are gates, inform user if not passed.
+  'gate size not power of 2' assert *./ (=<.) ugbc
+  'gate not square' assert =/@$&> ug
+  for_slice. (<"+ ugi) ,."1 2 gb do.
+    NB. grade indexes in order by gates, groups, bits
+    ord =. /: slice
+    NB. check groups match ugbc for the ugi selected. Note: duplicate groups and bits are just processed in order of appearance.
+    NB.      group gat whe  keep X % nqubits gate  ; assert nqubits divisible by gates and > gate size. hook(list,{.) gats groupd by gate and group
+    slgat   =. ;@(<@((ug {~ ([ {.~ #@[ % {&ugbc@>@]) [ 'number of qubits mismatch' assert #@[ (|~+:<) ugbc{~>@]) {.)@:({."1)/.~) ord { }:"1 slice
+    collect =. ((N,ord) q > tp&.>/ slgat) mp collect
+  end.
+}}
+
 
 NB. Measurement and visualisation
 NB. =============================

@@ -200,7 +200,7 @@ NB. permute qubits in gate or register (n) according to permutation in x. e.g. S
 NB.     r/g perm all axes  qb perm trans decode states
 qbp =: {{y ({|:)^:(#@$@])~ x (&{)(&.|:)(&.#:) i.#y}} 
 NB. reverse qubit order of gates or states (to e.g. what is used in qiskit)
-rev =: (2 i.@-@^ #) qbp ]
+rev =: (2 i.@-@^. #) qbp ]
 
 NB. controlled gates
 C    =: (=@i.@# bd ])"2   NB. add control qubit (as first qubit)

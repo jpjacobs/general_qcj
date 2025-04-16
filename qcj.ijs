@@ -124,12 +124,12 @@ NB. =======================
 NB. block diagonal (dyad)
 bd =: [ , ] ,"1~ 0 {.@# [
 NB. diagonal matrix/diagonal of matrix
-diag =: [`(* =@i.@#)`(|:~ <@i.@#@$)@.(2<.#@$)
+diag =: [`(* =@i.@#)`(|:~ <@i.@#@$)@.(2<.#@$) :. diag
 NB. matrix/dot product (dyad; use ip when dealing with bra's for conjugate)
 mp =: +/ .*
 NB. inner and outer product of states
-ip =: (mp +)~  NB. <x|y>
-op =: (*+)"0/  NB. |x><y|
+ip =: (mp +)~ NB. <x|y>
+op =:  */ +   NB. |x><y|
 NB. matrix power by repeated squaring (dyad e.g. 4 pow mat)
 pow=: (4 : 'mp/ mp~^:(I.|.#:y) x')
 NB. commutator [F,G] = FG - GF

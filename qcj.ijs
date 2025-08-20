@@ -39,6 +39,7 @@ K u shots S    : Run simulation verb u (ending in selm) |K times, returning stat
 x m circ y     : Quantum circuit matrix from description in Y. x optional syms;gates; m: 0 for non-fretted, 1 for fretted slices in y.
 
 States & Gates
+ Parametric gates (RX,RY,RZ,XX,FSIM) take parameter(s) on the left.
  S0 S1 Sp Sm Spi Smi : states (kets) |0>, |1>, |+>, |->, |i>, |-i>
  rg '01+-i!'         : quantum register = tensor product of kets above (! = -i)
  rst N               : generate random state of N qubits
@@ -46,10 +47,11 @@ States & Gates
  I X Y Z H           : identity; Pauli X,Y,Z; Hadamard
  RX RY RZ            : rotation gates around X,Y,Z
  P S T               : Phase shift gates; general (adverb), pi/2 and pi/4
- C G                 : Add control qubit as q0 to gate G (e.g. CZ -: C Z)
+ C G                 : Add control qubit as q0 to gate G (e.g. CZ -: C Z, or C5NOT=:C^:5 X)
  CX , CY , CZ        : controlled X,Y,Z
  CSW , SW            : (controlled) swap gate
  TOF                 : Toffoli gate = C C X = CCNOT
+ XX                  : XX interaction gate
  K L FSIM            : Fermionic simulation gate with theta,phi=K,L
  QFT                 : Quantum Fourrier Transform matrix for 2^.N states (use qft verb instead).
 
@@ -200,18 +202,21 @@ NB. permute qubits in gate or register (n) according to permutation in x. e.g. S
 NB.     r/g perm all axes  qb perm trans decode states
 qbp =: {{y ({|:)^:(#@$@])~ x (&{)(&.|:)(&.#:) i.#y}} 
 NB. reverse qubit order of gates or states (to e.g. what is used in qiskit)
-rev =: (2 i.@-@^ #) qbp ]
+rev =: (2 i.@-@^. #) qbp ]
 
 NB. controlled gates
 C    =: (=@i.@# bd ])"2   NB. add control qubit (as first qubit)
 CNOT =: {. 'CX CY CZ' =: C X,Y,:Z
 NB. swap swaps two qubits
-SW   =: X (] bd bd) ,1
+SW   =: 2 A. =i. 4
 
 NB. Toffoli
 TOF  =:  C C X
 NB. CSWAP; aka Fredkin conditioned on QB 0, swap QB's 1 and 2
 CSW =: C SW
+
+NB. XX interaction gate
+XX =: {{ (((+ 2 |.@:* ])=i.4) { 0,2 1 o. ]) m}}
 
 NB. FSim or fermionic simulation gate per https://en.wikipedia.org/wiki/List_of_quantum_logic_gates; m is theta,phi
 FSIM =: {{ ({.m) ((,1) bd (((0 1,:1 0) { 1 0j_1 *2 1&o.)@[) bd (,@^@j.@])) {:m}}

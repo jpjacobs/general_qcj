@@ -133,7 +133,7 @@ NB. inner and outer product of states
 ip =: (mp +)~  NB. <x|y>
 op =: (*+)"0/  NB. |x><y|
 NB. matrix power by repeated squaring (dyad e.g. 4 pow mat)
-pow=: (4 : 'mp/ mp~^:(I.|.#:y) x')
+pow=: (=@i.@$@[)`{{mp/mp~^:(I.@|.@#:y)x}}`(%.@[ $: |@])@.(*@])
 NB. commutator [F,G] = FG - GF
 com=: mp - mp~
 

@@ -126,14 +126,14 @@ NB. =======================
 NB. block diagonal (dyad)
 bd =: [ , ] ,"1~ 0 {.@# [
 NB. diagonal matrix/diagonal of matrix
-diag =: [`(* =@i.@#)`(|:~ <@i.@#@$)@.(2<.#@$)
+diag =: [`(* =@i.@#)`(|:~ <@i.@#@$)@.(2<.#@$) :. diag
 NB. matrix/dot product (dyad; use ip when dealing with bra's for conjugate)
 mp =: +/ .*
 NB. inner and outer product of states
-ip =: (mp +)~  NB. <x|y>
-op =: (*+)"0/  NB. |x><y|
+ip =: (mp +)~ NB. <x|y>
+op =:  */ +   NB. |x><y|
 NB. matrix power by repeated squaring (dyad e.g. 4 pow mat)
-pow=: (=@i.@$@[)`{{mp/mp~^:(I.@|.@#:y)x}}`(%.@[ $: |@])@.(*@])
+pow=: (=@i.@$@[)`{{mp/mp~^:(I.@|.@#:y)x}}`(%.@[ $: |@])@.(*@])"0 2
 NB. commutator [F,G] = FG - GF
 com=: mp - mp~
 
@@ -144,7 +144,7 @@ tp =: (cs ($,) as |: *"0 _) f.
 
 tps =: [: 8&$.@:scr tp&$. NB. sparse tensor product
 NB. scrub near 0's from any value (including complex) e.g. (;scr) 1 o. 2p1
-scr =: (**@:|)&.+.
+scr =: (**@:|)&.+. NB. note: &.: vs. &. 3x faster, using 2x space
 NB. dagger = transposed complex conjugate
 dag =: +@|:
 NB. matrix trace. e.g. trace op~ rg '0i1!'
@@ -170,15 +170,13 @@ S1 =: 0 1                NB. -Z
 'Sp  Sm' =: (%:2) %~ S0 (+,:-)    S1 NB. +-X; or H mp S1 or Hm S0
 'Spi Smi'=: (%:2) %~ S0 (+,:-) j. S1 NB. +-Y; or R/L
 NB. rst : generate random state of y qubits
-rst =: [: tp/@:norm@:j./ _1+2*0 ?@$~ 2,~2,]
+rst =: ([: tp/@:norm@:j./ _1+2*0 ?@$~ 2,~2,])"0
 
 NB. quantum register (watch out with size being 2^#y)
 rg =: ([: tp/ (S0,S1,Sp,Sm,Spi,:Smi) {~ '01+-i!' i. ,)"1
 
 NB. parallel gates use tp above: first applies on first Kqubit; second on second.
 NB. composing single qubits to register: use tp. Applying gates in parallel: use tp
-NB. e.g. Y and X in parallel on qubits 1 2; 3 4.
-((Y tp X) mp (1 2 tp 3 4) ) -: (Y mp 1 2) tp (X mp 3 4)
 
 NB. rotation gates
 RX =:  {{(1 0j_1,:0j_1 1) * (2 1,:1 2) o. -: m}}
@@ -188,7 +186,7 @@ RZ =:  {{  2 2$^(-,__,__,])j.-:m}}
 NB. phase shift gates (period 2 pi, note, not hermitian)
 P    =: {{1 0 ,: 0,^@j. m}} NB. arbitrary rotation around Z axis by y radians
 S    =: scr 1r2p1 P         NB. S gate: pi/2 radian rotation
-T    =: 1r4p1 P             NB. T gate: pi/4 rotation
+T    =:     1r4p1 P         NB. T gate: pi/4 rotation
 
 NB. Multi-qubit gates
 NB. ---------------------
@@ -211,9 +209,9 @@ NB. swap swaps two qubits
 SW   =: 2 A. =i. 4
 
 NB. Toffoli
-TOF  =:  C C X
+TOF  =: C C X
 NB. CSWAP; aka Fredkin conditioned on QB 0, swap QB's 1 and 2
-CSW =: C SW
+CSW  =: C SW
 
 NB. XX interaction gate
 XX =: {{ (((+ 2 |.@:* ])=i.4) { 0,2 1 o. ]) m}}
@@ -222,7 +220,7 @@ NB. FSim or fermionic simulation gate per https://en.wikipedia.org/wiki/List_of_
 FSIM =: {{ ({.m) ((,1) bd (((0 1,:1 0) { 1 0j_1 *2 1&o.)@[) bd (,@^@j.@])) {:m}}
 NB. Quantum Fourrier Transform matrix (y: width of state i.e. 2^Nqubits). Uses mod to avoid accumulating FP errors.
 NB. QFT=: %: %~ ([:r.2p1%])^]|*/~@:i.
-QFT =: (%: %~ [:r.i.*2p1%]){~]|*/~@:i. NB. slight rewrite, 10x faster, half the space. Note: (-:~.@,i.]) (]|*/~@i.) 16, so omit ~. and dyad i. .
+QFT =: ((%: %~ [:r.i.*2p1%]){~]|*/~@:i.)"0 NB. slight rewrite, 10x faster, half the space. Note: (-:~.@,i.]) (]|*/~@i.) 16, so omit ~. and dyad i. .
 NB. qft verb, applies qft to state; with inverse defined
 qft=: (mp"2 1~ QFT@{:@$) :. (mp"2 1~ dag@QFT@{:@$)
 
@@ -278,12 +276,12 @@ NB. Measurement and visualisation
 NB. =============================
 
 NB. Measurement (x: projector for basis operator (outerproduct of an eigenvector of the operator with itself); y: qubit)
-meas  =: +@] mp [ mp ] NB. + instead of dag, because (dag v)-:+v for any vector v.
+meas  =: (+@] mp [ mp ])"2 1 NB. + instead of dag, because (dag v)-:+v for any vector v.
 pmeas =: (op~@[ meas ])"1 _  f. NB. measurement projecting state y on vector(s) x (left, rank 1). e.g. Sm pmeas 1r4p1 RZ mp Sm
 NB. standard measurement bases for single qubit; for multiple (e.g. 4) do: (1 tp^:4~ rg"0 '01') pmeas state. 
-zmeas =: S0 &pmeas NB. |0>
-xmeas =: Sp &pmeas NB. |+>
-ymeas =: Spi&pmeas NB. |i>
+zmeas =: S0 &pmeas NB. measure |0><0|
+xmeas =: Sp &pmeas NB. measure |+><+|
+ymeas =: Spi&pmeas NB. measure |i><i|
 NB. Historical only; use selm/selmd below. selective measurement in Z basis x: qubits to measure; y: state. returns probabilities for 0...0 to 1...1 state
 NB. selm_orig =: (([: i. 2^.#) $: ]) :  (({ "1 #:@i.@#) +//. *:@:|@:])
 NB. selm  =: (([: i. 2^.#) $: ]) :(({"1 #:@i.@#) (      (+//. *:@:|),. =@[ ]`(I.@[)`[}"1 norm/.) ] )
@@ -291,11 +289,11 @@ NB. selm  =: (([: i. 2^.#) $: ]) :(({"1 #:@i.@#) (      (+//. *:@:|),. =@[ ]`(I.
 NB. Selective measurement in Z-basis with resulting state vectors; returns (boxed) 0) probabilities, 1) resulting state vectors 2) bit representation
 NB. Could likely be simplified; works within a second or so for measuring all of 12 QBits, so fine for now.
 NB.      Monad: all qbits   : partial indices  sum  probs  ; where interleave normed states; bit representation NB. Detail: (0) selm and (,0) selm differ in dimensions of bitstring.
-selm =: (([: i. 2^.#) $: ]) :(({"1 #:@i.@#) ( (+//. *:@:|) ; (=@[ ]`(I.@[)`[}"1 norm/.)  ; ~.@[ ) ] )
+selm =: (([: i. 2^.#) $: ]) :(({"1 #:@i.@#) ( (+//. *:@:|) ; (=@[ ]`(I.@[)`[}"1 norm/.)  ; ~.@[ ) ] )"1
 NB. pickst: picks random state from result of selm according to resulting probabilities; strips probability, since nonsensical
-pickst =: (+/\ I. ?@0)@(0&{::) { L:0 }.
+pickst =: ((+/\ I. ?@0)@(0&{::) { L:0 }.)"1
 NB. plaus: keep only plausible (i.e. non 0-probability) states from selm results:
-plaus =: (0<[: scr 0{::]) #L:0 ]
+plaus =: ((0<[: scr 0{::]) #L:0 ])"1
 
 assert I -: ([: >@{. 2 selm ])"1] 2 (1&{::)@selm rst 3 NB. measuring the same bit twice should, the second time have 100% probability
 
@@ -317,7 +315,7 @@ hist =: (('bar;xlabel ',[: ,' ',.~dquote@:":@:}:"1) plot {:"1)@/:~@:(({.,#)/.~)
 
 NB. Visualisations
 NB. ===============
-ang2st =: -:@{. ( (2 o. [) , _12&o.@] * 1 o. [) {:              NB. |s> = cos(T/2) , (e^i phi) sin(T/2)
+ang2st =: -:@{. ( (2 o. [) , _12&o.@] * 1 o. [) {:              NB. |s> = cos(T/2) , (e^i phi) sin(T/2) ; inverse for bloch angles
 blocha =: (-~/@:{: ,~ 2*_1 o. {:@:{.)@:|:@:*.@:norm"1 :. ang2st NB. Bloch angles theta, phi; with inverse
 NB. Bloch vectors (y: qubit(s)) to 3D coordinates in bloch sphere
 NB.      cos T sin phi , sin T,phi  cos theta   phi1-phi0   2 * acos theta split normed qubit

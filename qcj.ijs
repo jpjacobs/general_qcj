@@ -27,7 +27,7 @@ Verbs/functions defined:
     scr  A     : scrub near-zero values from any (complex) values A
  K..L selm S   : selective measurement in Z-basis of qubits K..L, returns: P(bitstring) ; states after measuring ; bitstring
   pickst P;S;B : Pick one state;bitstring from results of selm according to the contained probabilities
-  plaus  P;S;B : Keep only plausible states from selm results
+[N] plaus  P;S;B : Keep only plausible states (p(X)>N, defaults to 0) from selm results
 K u shots S    : Run simulation verb u (ending in selm) |K times, returning states. If K>0 u is run K times, otherwise, the state is computed only once.
   hist M       : Plots histogram of any numeric data (e.g. measurement results: hist 1000 selm@:(H&mp) shots S0)
  [x,y,z]meas S : measurement probability in x,y, or z basis
@@ -292,8 +292,8 @@ NB.      Monad: all qbits   : partial indices  sum  probs  ; where interleave no
 selm =: (([: i. 2^.#) $: ]) :(({"1 #:@i.@#) ( (+//. *:@:|) ; (=@[ ]`(I.@[)`[}"1 norm/.)  ; ~.@[ ) ] )"1
 NB. pickst: picks random state from result of selm according to resulting probabilities; strips probability, since nonsensical
 pickst =: ((+/\ I. ?@0)@(0&{::) { L:0 }.)"1
-NB. plaus: keep only plausible (i.e. non 0-probability) states from selm results:
-plaus =: ((0<[: scr 0{::]) #L:0 ])"1
+NB. plaus: keep only plausible states from selm results (i.e. probability > x if given, or the 0-tolerance):
+plaus =: ((0<[:scr 0{::])#L:0]) : (]#L:0~[<:0{::])
 
 assert I -: ([: >@{. 2 selm ])"1] 2 (1&{::)@selm rst 3 NB. measuring the same bit twice should, the second time have 100% probability
 
